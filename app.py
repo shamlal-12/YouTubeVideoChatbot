@@ -167,7 +167,7 @@ if not api_key:
     """, unsafe_allow_html=True)
     st.title("🎥 Chat with YouTube Video")
     st.markdown("Chat with any YouTube video using Gemini AI!")
-    st.info("""
+    st.markdown("""
         <div style='text-align:center; font-size:1.2rem;'>
             <b>👋 Welcome! Please enter your Gemini API key in the sidebar to get started.</b>
         </div>
