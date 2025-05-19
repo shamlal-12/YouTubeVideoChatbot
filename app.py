@@ -264,16 +264,31 @@ def get_transcript_text(video_id):
         """)
         st.stop()
     except Exception as e:
-        st.error(f"""
-        🚫 Error: {str(e)}
-        
-        This might be because:
-        1. The video is private or restricted
-        2. The video doesn't exist
-        3. There's an issue with the YouTube API
-        
-        Please try a different video URL.
-        """)
+        error_message = str(e)
+        if "IP" in error_message or "blocked" in error_message.lower():
+            st.error("""
+            🚫 YouTube API Access Issue
+            
+            We're currently experiencing issues accessing YouTube's API. This is a temporary limitation.
+            
+            Please try these solutions:
+            1. Try a different video
+            2. Wait a few minutes and try again
+            3. Use a video from a channel that typically has good caption support
+            
+            Note: This is a known limitation when using cloud platforms. We're working on a solution.
+            """)
+        else:
+            st.error(f"""
+            🚫 Error: {str(e)}
+            
+            This might be because:
+            1. The video is private or restricted
+            2. The video doesn't exist
+            3. There's an issue with the YouTube API
+            
+            Please try a different video URL.
+            """)
         st.stop()
 
 # Main logic
@@ -290,31 +305,43 @@ if youtube_url:
             """)
         else:
             with st.spinner("🔍 Checking video and fetching transcript..."):
-                raw_text = get_transcript_text(video_id)
+                try:
+                    raw_text = get_transcript_text(video_id)
 
-                # Split text and embed
-                splitter = CharacterTextSplitter(separator=". ", chunk_size=1000, chunk_overlap=200)
-                texts = splitter.split_text(raw_text)
-                docs = [Document(page_content=t) for t in texts]
+                    # Split text and embed
+                    splitter = CharacterTextSplitter(separator=". ", chunk_size=1000, chunk_overlap=200)
+                    texts = splitter.split_text(raw_text)
+                    docs = [Document(page_content=t) for t in texts]
 
-                # Vector store
-                db = FAISS.from_documents(docs, embed_model)
-                retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 5})
+                    # Vector store
+                    db = FAISS.from_documents(docs, embed_model)
+                    retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 5})
 
-                # QA chain
-                chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
+                    # QA chain
+                    chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
 
-            st.success("✅ Transcript fetched! Ask your questions below.")
+                    st.success("✅ Transcript fetched! Ask your questions below.")
 
-            # Chat interface
-            st.markdown("### 💬 Chat")
-            query = st.text_input("Ask a question about the video:", key="query")
-            
-            if query:
-                with st.spinner("🤔 Thinking..."):
-                    response = chain.run(query)
-                    st.markdown("#### Answer:")
-                    st.write(response)
+                    # Chat interface
+                    st.markdown("### 💬 Chat")
+                    query = st.text_input("Ask a question about the video:", key="query")
+                    
+                    if query:
+                        with st.spinner("🤔 Thinking..."):
+                            response = chain.run(query)
+                            st.markdown("#### Answer:")
+                            st.write(response)
+                except Exception as e:
+                    st.error(f"""
+                    🚫 An error occurred while processing the video.
+                    
+                    Please try:
+                    1. Using a different video
+                    2. Checking if the video has captions enabled
+                    3. Waiting a few minutes before trying again
+                    
+                    Error details: {str(e)}
+                    """)
 
     except Exception as e:
         st.error(f"""
