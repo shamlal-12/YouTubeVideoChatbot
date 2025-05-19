@@ -267,16 +267,20 @@ def get_transcript_text(video_id):
         error_message = str(e)
         if "IP" in error_message or "blocked" in error_message.lower():
             st.error("""
-            🚫 YouTube API Access Issue
-            
-            We're currently experiencing issues accessing YouTube's API. This is a temporary limitation.
-            
-            Please try these solutions:
-            1. Try a different video
+            🚫 **YouTube API Access Issue**
+
+            This app is currently unable to fetch captions from YouTube because of restrictions on cloud platforms (like Streamlit Cloud). This is a known limitation due to YouTube blocking or rate-limiting requests from shared/public servers.
+
+            **How to fix:**
+            1. Try a different video (sometimes some work)
             2. Wait a few minutes and try again
-            3. Use a video from a channel that typically has good caption support
-            
-            Note: This is a known limitation when using cloud platforms. We're working on a solution.
+            3. **For best results, [run this app locally on your own computer](https://github.com/shamlal-12/YouTubeVideoChatbot#-how-to-use)**
+
+            _Why?_
+            - YouTube is more likely to block cloud server IPs than your home computer.
+            - Running locally avoids these restrictions and works for most videos with captions.
+
+            **See the README for local setup instructions.**
             """)
         else:
             st.error(f"""
